@@ -5,34 +5,13 @@ from pathlib import Path
 
 from aiogram import Bot, Dispatcher, executor, types
 
-
-class Config:
-    def __init__(self, path="config.json"):
-        self.path = Path(path)
-        if self.path.exists():
-            self.dict = json.load(open(self.path))
-        else:
-            self.dict = {}
-            self.save()
-
-    def get(self, chat, key):
-        if not chat in self.dict:
-            return None
-        return None if not key in self.dict[chat] else self.dict[chat][key]
-
-    def set(self, chat, key, value):
-        if not chat in self.dict:
-            self.dict[chat] = {}
-        self.dict[chat][key] = value
-        self.save()
-
-    def save(self):
-        json.dump(self.dict, open(self.path, "w"), sort_keys=True, indent=2)
-
+from config import Config
+from repository import Repository
 
 logging.basicConfig(level=logging.INFO)
 
 config = Config()
+repository = Repository()
 bot = Bot(token=config.get("config", "token"))
 dp = Dispatcher(bot)
 last_run = {}
@@ -69,6 +48,7 @@ async def send_help(message: types.Message):
     reply.append("/disable\t Disable ping in this chat.")
     reply.append("/enable\t Enable ping in this chat.")
     reply.append("/pingme\t Ping you in this chat.")
+    reply.append("/arch4edu package\t Search for a package in arch4edu.")
     reply.append("/help\t Show this help.")
     await message.reply("\n".join(reply))
 
@@ -95,10 +75,18 @@ async def set_ping(message: types.Message):
     await message.reply(f"I will ping {user} in {chat}.")
 
 
-# @dp.message_handler(commands=["arch4edu"])
-# async def set_ping(message: types.Message):
-#    user = message.from_user.mention
-#    await message.reply(f"I will ping {user} in {chat}.")
+@dp.message_handler(commands=["arch4edu"])
+async def search(message: types.Message):
+    package = message.get_args()
+
+    if package == "":
+        await message.reply("Usage: /arch4edu package")
+
+    result = repository.search(package)
+    if len(result) > 0:
+        await message.reply("\n".join(" ".join(i) for i in result))
+    else:
+        await message.reply(f"Cannot find {package} in arch4edu.")
 
 
 @dp.message_handler()
