@@ -81,12 +81,18 @@ async def search(message: types.Message):
 
     if package == "":
         await message.reply("Usage: /arch4edu package")
+        return
+
+    reply = None
+    if repository.need_update():
+        reply = await message.reply("Hold on. Updating package database ...")
 
     result = repository.search(package)
+    method = reply.edit_text if reply else message.reply
     if len(result) > 0:
-        await message.reply("\n".join(" ".join(i) for i in result))
+        await method("\n".join(" ".join(i) for i in result))
     else:
-        await message.reply(f"Cannot find {package} in arch4edu.")
+        await method(f"Cannot find {package} in arch4edu.")
 
 
 @dp.message_handler()

@@ -36,11 +36,15 @@ class Repository:
         self.packages = _packages
         self.last_update = datetime.now()
 
+    def need_update(self):
+        if self.last_update is None:
+            return True
+        if datetime.now() - self.last_update > self.update_threshold:
+            return True
+        return False
+
     def search(self, package):
-        if (
-            self.last_update is None
-            or datetime.now() - self.last_update > self.update_threshold
-        ):
+        if self.need_update():
             self.update()
         result = [i for i in self.packages.values() if i[0] == package]
         return result
