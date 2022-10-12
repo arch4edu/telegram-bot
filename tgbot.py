@@ -98,15 +98,17 @@ async def search(message: types.Message):
 
 @dp.message_handler(commands=["pkgstats"])
 async def search(message: types.Message):
-    package = message.get_args()
+    packages = message.get_args()
 
-    if package == "":
-        await message.reply("Usage: /pkgstats package")
+    if packages == "":
+        await message.reply("Usage: /pkgstats package [package]...")
     else:
-        count, samples = pkgstats.search(package)
-        await message.reply(
-            "%d / %d = %.2f%%" % (count, samples, 100 * count / samples)
-        )
+        packages = packages.split(" ")
+        reply = []
+        for package in packages:
+            count, samples = pkgstats.search(package)
+            reply.append("%s: %d (%.2f%%)" % (package, count, 100 * count / samples))
+        await message.reply("\n".join(reply))
 
 
 @dp.message_handler()
