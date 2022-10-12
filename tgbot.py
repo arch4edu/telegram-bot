@@ -5,6 +5,7 @@ from pathlib import Path
 
 from aiogram import Bot, Dispatcher, executor, types
 
+import pkgstats
 from config import Config
 from repository import Repository
 
@@ -93,6 +94,19 @@ async def search(message: types.Message):
         await method("\n".join(" ".join(i) for i in result))
     else:
         await method(f"Cannot find {package} in arch4edu.")
+
+
+@dp.message_handler(commands=["pkgstats"])
+async def search(message: types.Message):
+    package = message.get_args()
+
+    if package == "":
+        await message.reply("Usage: /pkgstats package")
+    else:
+        count, samples = pkgstats.search(package)
+        await message.reply(
+            "%d / %d = %.2f%%" % (count, samples, 100 * count / samples)
+        )
 
 
 @dp.message_handler()
